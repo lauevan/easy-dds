@@ -29,5 +29,11 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <dependency>
+            <groupId>lauevan.cn</groupId>
+            <artifactId>easy-dds-core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 </project>

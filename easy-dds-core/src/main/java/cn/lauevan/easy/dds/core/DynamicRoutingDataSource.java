@@ -11,15 +11,15 @@ import java.util.Map;
  * @author Lauevan (noah.coder@gmail.com)
  * Create at November 3, 2020 at 22:06:35 GMT+8
  */
-public class EasyDDSRoutingDataSource extends AbstractRoutingDataSource {
+public class DynamicRoutingDataSource extends AbstractRoutingDataSource {
 
-    public EasyDDSRoutingDataSource(DataSource defaultDataSource, Map<Object, Object> targetDataSources) {
+    public DynamicRoutingDataSource(DataSource defaultDataSource, Map<Object, Object> targetDataSources) {
         setDefaultTargetDataSource(defaultDataSource);
         setTargetDataSources(targetDataSources);
     }
 
     @Override
     public Object determineCurrentLookupKey() {
-        return null;
+        return DataSourceLookupKeyHolder.current();
     }
 }

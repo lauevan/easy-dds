@@ -1,0 +1,1 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=cn.lauevan.easy.dds.spring.boot.starter.DynamicDataSourceAutoConfiguration
