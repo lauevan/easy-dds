@@ -4,6 +4,7 @@ import cn.lauevan.easy.dds.core.DynamicDataSourceStarter;
 import cn.lauevan.easy.dds.spring.boot.starter.props.DynamicDataSourceProps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,18 +17,16 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties(DynamicDataSourceProps.class)
+@ConditionalOnProperty(prefix = "easy-dds", name = "enabled", havingValue = "true")
 public class DynamicDataSourceAutoConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicDataSourceAutoConfiguration.class);
 
-    private final DynamicDataSourceProps dynamicDataSourceProps;
-
-    public DynamicDataSourceAutoConfiguration(DynamicDataSourceProps dynamicDataSourceProps) {
-        this.dynamicDataSourceProps = dynamicDataSourceProps;
-    }
-
     @Bean
-    public DynamicDataSourceStarter dynamicDataSourceStarter() {
-        return new DynamicDataSourceStarter(dynamicDataSourceProps.getDefaultDataSource());
+    public DynamicDataSourceStarter dynamicDataSourceStarter(DynamicDataSourceProps dynamicDataSourceProps) {
+        return new DynamicDataSourceStarter(dynamicDataSourceProps.getRoutingDataSourceBeanName(),
+                dynamicDataSourceProps.getRoutingDataSourceType(),
+                dynamicDataSourceProps.getDataSourceLookupStrategy(),
+                dynamicDataSourceProps.getDefaultDataSource());
     }
 }
