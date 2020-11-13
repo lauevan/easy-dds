@@ -15,6 +15,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
 import javax.sql.DataSource;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -30,6 +31,8 @@ public class DynamicDataSourceStarter {
     private String dataSourceType;
     private DefaultDataSourceBean defaultDataSourceBean;
     private DataSourceLookupStrategy lookupStrategy;
+    private DataSource defaultDataSource;
+    private Map<DataSourceLookupKey, DataSource> mappingDataSources;
 
     public DynamicDataSourceStarter(String routingDataSrouceBeanName,
                                     String routingDataSourceType,
@@ -60,28 +63,30 @@ public class DynamicDataSourceStarter {
         resolveLookupStrategy();
 
         lookupDefaultDataSource();
-        lookupMappingDataSource();
+        lookupMappingDataSources();
 
-        registerRoutingDataSource(ctx);
+        registerRoutingDataSource(
+                lookupDefaultDataSource(),
+                lookupMappingDataSources(),
+                ctx
+        );
     }
 
-    private void registerRoutingDataSource(ApplicationContext ctx) {
+    private void registerRoutingDataSource(Map<DataSourceLookupKey, DataSource> mappingDataSources,
+                                           DataSource defaultDataSource,
+                                           ApplicationContext context) {
 
-        DataSource defaultDataSource = DataSourceBuilder
-                .create()
-                .type(resolveDataSourceType(dataSourceType))
-                .url(defaultDataSourceBean.getUrl())
-                .username(defaultDataSourceBean.getUsername())
-                .password(defaultDataSourceBean.getPassword())
-                .driverClassName(defaultDataSourceBean.getDriverClassName())
-                .build();
+
     }
 
-    private void lookupMappingDataSource() {
+    private DataSource lookupMappingDataSources() {
+        // TODO 根据策略去查找数据源映射表
+        return null;
     }
 
-    private void lookupDefaultDataSource() {
-
+    private Map<DataSourceLookupKey, DataSource> lookupDefaultDataSource() {
+        // TODO 根据策略查找默认数据源
+        return null;
     }
 
     private void resolveLookupStrategy() {
@@ -130,5 +135,16 @@ public class DynamicDataSourceStarter {
         if (Objects.isNull(defaultDataSourceBean)) {
             throw new ConfigurationErrorException("The configuration bean not found.");
         }
+    }
+
+    private DataSource createDataSource(String url, String username, String password, String driverClassName) {
+        return DataSourceBuilder
+                .create()
+                .type(resolveDataSourceType(dataSourceType))
+                .url(url)
+                .username(username)
+                .password(password)
+                .driverClassName(driverClassName)
+                .build();
     }
 }
