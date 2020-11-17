@@ -6,6 +6,7 @@ package cn.lauevan.easy.dds.core;
  * @author Lauevan (noah.coder@gmail.com)
  * Create at November 5, 2020 at 23:49:06 GMT+8
  */
+@FunctionalInterface
 public interface DataSourceLookupKey extends EquallyComparable {
 
     String createKey();
