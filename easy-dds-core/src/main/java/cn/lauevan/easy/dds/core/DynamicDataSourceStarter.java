@@ -91,7 +91,7 @@ public class DynamicDataSourceStarter {
     }
 
     private DataSource lookupMainDataSource() {
-        final DataSourceConfigBean config = lookupConfigs(true)
+        final DataSourceConfigBean config = loadConfigs(true)
                 .values()
                 .stream()
                 .findFirst()
@@ -103,7 +103,7 @@ public class DynamicDataSourceStarter {
                 config.getDriverClassName());
     }
 
-    private Map<DataSourceLookupKey, List<DataSourceConfigBean>> lookupConfigs(boolean isMain) {
+    private Map<DataSourceLookupKey, List<DataSourceConfigBean>> loadConfigs(boolean isMain) {
 
         Map<DataSourceLookupKey, List<DataSourceConfigBean>> configs = Maps.newHashMap();
 
