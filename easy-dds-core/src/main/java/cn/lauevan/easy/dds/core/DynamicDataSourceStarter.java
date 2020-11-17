@@ -91,8 +91,8 @@ public class DynamicDataSourceStarter {
     }
 
     private DataSource lookupMainDataSource() {
-        Map<DataSourceLookupKey, List<DataSourceConfigBean>> configs = lookupConfigs(true);
-        final DataSourceConfigBean config = configs.values()
+        final DataSourceConfigBean config = lookupConfigs(true)
+                .values()
                 .stream()
                 .findFirst()
                 .orElse(Lists.newArrayList())
