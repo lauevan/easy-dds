@@ -75,7 +75,7 @@ public class DynamicDataSourceStarter {
 
     }
 
-    private void initialize(ApplicationContext ctx) {
+    public void initialize(ApplicationContext ctx) {
         registerRoutingDataSource(
                 lookupMainDataSource(),
                 lookupMappingDataSources(),
