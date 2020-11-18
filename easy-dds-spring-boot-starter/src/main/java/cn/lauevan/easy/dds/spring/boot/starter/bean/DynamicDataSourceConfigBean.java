@@ -1,7 +1,6 @@
 package cn.lauevan.easy.dds.spring.boot.starter.bean;
 
 import cn.lauevan.easy.dds.core.bean.DataSourceCompositeConfigBean;
-import cn.lauevan.easy.dds.core.enums.DataSourceLookupStrategy;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -16,6 +15,5 @@ public class DynamicDataSourceConfigBean implements Serializable {
     private Boolean enabled;
     private String routingDataSourceBeanName;
     private String routingDataSourceType;
-    private DataSourceLookupStrategy dataSourceLookupStrategy;
-    private DataSourceCompositeConfigBean dataSource;
+    private DataSourceCompositeConfigBean datasource = new DataSourceCompositeConfigBean();
 }

@@ -31,12 +31,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-actuator-autoconfigure</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>lauevan.cn</groupId>
+            <groupId>cn.lauevan</groupId>
             <artifactId>easy-dds-core</artifactId>
             <version>1.0.0</version>
         </dependency>

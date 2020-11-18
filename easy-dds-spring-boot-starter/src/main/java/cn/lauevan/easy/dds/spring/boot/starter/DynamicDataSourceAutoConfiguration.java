@@ -1,14 +1,15 @@
 package cn.lauevan.easy.dds.spring.boot.starter;
 
-import cn.lauevan.easy.dds.core.DynamicDataSourceStarter;
 import cn.lauevan.easy.dds.spring.boot.starter.bean.DynamicDataSourceConfigBean;
-import org.springframework.boot.actuate.autoconfigure.jdbc.DataSourceHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+import javax.sql.DataSource;
 
 /**
  * <p>Easy DDS Spring boot stater 自动配置类</p>
@@ -17,16 +18,32 @@ import org.springframework.context.annotation.Configuration;
  * Create at November 3, 2020 at 21:56:14 GMT+8
  */
 @Configuration
-@AutoConfigureBefore({DataSourceAutoConfiguration.class, DataSourceHealthContributorAutoConfiguration.class})
+@AutoConfigureBefore({DataSourceAutoConfiguration.class})
 @EnableConfigurationProperties(DynamicDataSourceConfigBean.class)
 @ConditionalOnProperty(prefix = "easy-dds", name = "enabled", havingValue = "true")
 public class DynamicDataSourceAutoConfiguration {
 
+    public DynamicDataSourceAutoConfiguration() {
+        System.out.println("testtttttt");
+    }
+
     @Bean
-    public DynamicDataSourceStarter dynamicDataSourceStarter(DynamicDataSourceConfigBean dynamicDataSourceConfig) {
-        return new DynamicDataSourceStarter(dynamicDataSourceConfig.getRoutingDataSourceBeanName(),
+    public DynamicDataSourceCreator dynamicDataSourceCreator(DynamicDataSourceConfigBean dynamicDataSourceConfig) {
+
+        final DynamicDataSourceCreator creator = new DynamicDataSourceCreator(
+                dynamicDataSourceConfig.getRoutingDataSourceBeanName(),
                 dynamicDataSourceConfig.getRoutingDataSourceType(),
-                dynamicDataSourceConfig.getDataSourceLookupStrategy(),
-                dynamicDataSourceConfig.getDataSource());
+                dynamicDataSourceConfig.getDatasource().getLookupStrategy(),
+                dynamicDataSourceConfig.getDatasource());
+
+        creator.initialize();
+
+        return creator;
+    }
+
+    @Bean
+    @Primary
+    public DataSource dynamicDataSource(DynamicDataSourceCreator creator) {
+        return creator.create();
     }
 }

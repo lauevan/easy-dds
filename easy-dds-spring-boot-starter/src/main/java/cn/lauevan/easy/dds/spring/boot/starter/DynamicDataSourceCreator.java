@@ -1,5 +1,7 @@
-package cn.lauevan.easy.dds.core;
+package cn.lauevan.easy.dds.spring.boot.starter;
 
+import cn.lauevan.easy.dds.core.DataSourceLookupKey;
+import cn.lauevan.easy.dds.core.DynamicRoutingDataSource;
 import cn.lauevan.easy.dds.core.bean.DataSourceCompositeConfigBean;
 import cn.lauevan.easy.dds.core.bean.DataSourceConfigBean;
 import cn.lauevan.easy.dds.core.enums.DataSourceLookupStrategy;
@@ -11,9 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 
 import javax.sql.DataSource;
@@ -27,18 +27,18 @@ import static cn.lauevan.easy.dds.core.enums.DataSourceLookupStrategy.LOCAL_CONF
 import static cn.lauevan.easy.dds.core.enums.DataSourceLookupStrategy.REMOTE_PULL;
 
 /**
- * <p>动态数据源启动器</p>
+ * <p>动态数据源创建器</p>
  *
  * @author Lauevan (noah.coder@gmail.com)
  * Create at November 17, 2020 at 16:57:12 GMT+8
  */
-public class DynamicDataSourceStarter {
+public class DynamicDataSourceCreator {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicDataSourceStarter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicDataSourceCreator.class);
 
-    private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
     private static final Class<? extends DataSource> DEFAULT_DATA_SOURCE_TYPE = HikariDataSource.class;
     private static final DataSourceLookupStrategy DEFAULT_LOOKUP_STRATEGY = REMOTE_PULL;
+    private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
     /**
      * 动态数据源的 bean 名称
@@ -48,7 +48,11 @@ public class DynamicDataSourceStarter {
     private DataSourceCompositeConfigBean compositeConfigBean;
     private DataSourceLookupStrategy lookupStrategy;
 
-    public DynamicDataSourceStarter(String routingDataSrouceBeanName,
+    private DataSource mainDataSource;
+    private Map<Object, Object> mappingDataSources;
+
+
+    DynamicDataSourceCreator(String routingDataSrouceBeanName,
                                     String routingDataSourceType,
                                     DataSourceLookupStrategy lookupStrategy,
                                     DataSourceCompositeConfigBean compositeConfigBean) {
@@ -58,36 +62,29 @@ public class DynamicDataSourceStarter {
         this.lookupStrategy = lookupStrategy;
     }
 
-    @EventListener(ContextRefreshedEvent.class)
-    public void onRefreshed(ContextRefreshedEvent refreshedEvent) {
+    void initialize() {
         if (INITIALIZED.compareAndSet(false, true)) {
             resolveBeanName();
             resolveLookupStrategy();
 
             check(compositeConfigBean);
 
-            initialize(refreshedEvent.getApplicationContext());
+            mainDataSource = lookupMainDataSource();
+            mappingDataSources = lookupMappingDataSources();
         }
+    }
+
+    DataSource create() {
+
+        DynamicRoutingDataSource routingDataSource = new DynamicRoutingDataSource(mainDataSource, mappingDataSources);
+        routingDataSource.afterPropertiesSet();
+
+        return routingDataSource;
     }
 
     @EventListener(ContextClosedEvent.class)
     public void onClosed(ContextClosedEvent closedEvent) {
 
-    }
-
-    public void initialize(ApplicationContext ctx) {
-        registerRoutingDataSource(
-                lookupMainDataSource(),
-                lookupMappingDataSources(),
-                ctx
-        );
-    }
-
-    private void registerRoutingDataSource(DataSource mainDataSource,
-                                           Map<DataSourceLookupKey, DataSource> mappingDataSources,
-                                           ApplicationContext context) {
-
-        // TODO
     }
 
     private DataSource lookupMainDataSource() {
@@ -97,7 +94,7 @@ public class DynamicDataSourceStarter {
                 .findFirst()
                 .orElse(Lists.newArrayList())
                 .get(0);
-        return createDataSource(config.getUrl(),
+        return createRawDataSource(config.getUrl(),
                 config.getUsername(),
                 config.getPassword(),
                 config.getDriverClassName());
@@ -122,7 +119,7 @@ public class DynamicDataSourceStarter {
         return configs;
     }
 
-    private Map<DataSourceLookupKey, DataSource> lookupMappingDataSources() {
+    private Map<Object, Object> lookupMappingDataSources() {
         // TODO 根据策略去查找数据源映射表
         return null;
     }
@@ -170,24 +167,19 @@ public class DynamicDataSourceStarter {
 
         if (lookupStrategy == LOCAL_CONFIG_READ) {
 
-            if (Objects.isNull(compositeConfigBean)) {
-                LOGGER.error("The data source configuration [{}] not found.", "easy-dds.data-source");
-                throw new DDSConfigurationErrorException("The data source configuration [easy-dds.data-source] not found.");
-            }
-
             if (Objects.isNull(compositeConfigBean.getMain())) {
                 LOGGER.error("The data source configuration [{}] not found.", "easy-dds.data-source.main");
-                throw new DDSConfigurationErrorException("The data source configuration [easy-dds.data-source.main] not found.");
+                throw new DDSConfigurationErrorException("The data source configuration [easy-dds.datasource.main] not found.");
             }
 
             if (Objects.isNull(compositeConfigBean.getMapping())) {
                 LOGGER.error("The data source configuration [{}] not found.", "easy-dds.data-source.mapping");
-                throw new DDSConfigurationErrorException("The data source configuration [easy-dds.data-source.mapping] not found.");
+                throw new DDSConfigurationErrorException("The data source configuration [easy-dds.datasource.mapping] not found.");
             }
         }
     }
 
-    private DataSource createDataSource(String url, String username, String password, String driverClassName) {
+    private DataSource createRawDataSource(String url, String username, String password, String driverClassName) {
         return DataSourceBuilder
                 .create()
                 .type(resolveDataSourceType(dataSourceType))
