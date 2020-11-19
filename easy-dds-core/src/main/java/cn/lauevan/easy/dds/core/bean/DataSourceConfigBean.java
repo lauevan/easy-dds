@@ -1,5 +1,6 @@
 package cn.lauevan.easy.dds.core.bean;
 
+import cn.lauevan.easy.dds.core.enums.DataSourceType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -13,4 +14,6 @@ public class DataSourceConfigBean implements Serializable {
     private String username;
     private String password;
     private String driverClassName;
+
+    private DataSourceType type;
 }

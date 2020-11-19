@@ -1,6 +1,7 @@
 package cn.lauevan.easy.dds.spring.boot.starter;
 
-import cn.lauevan.easy.dds.core.DataSourceLookupKey;
+import cn.lauevan.easy.dds.core.spi.IDataSourceLookupKey;
+import cn.lauevan.easy.dds.core.DataSourceTypeLookupKey;
 import cn.lauevan.easy.dds.core.DynamicRoutingDataSource;
 import cn.lauevan.easy.dds.core.bean.DataSourceCompositeConfigBean;
 import cn.lauevan.easy.dds.core.bean.DataSourceConfigBean;
@@ -20,11 +21,13 @@ import javax.sql.DataSource;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static cn.lauevan.easy.dds.core.enums.DataSourceLookupStrategy.LOCAL_CONFIG_READ;
 import static cn.lauevan.easy.dds.core.enums.DataSourceLookupStrategy.REMOTE_PULL;
+import static cn.lauevan.easy.dds.core.util.WordHelper.lowercaseFirstChar;
 
 /**
  * <p>动态数据源创建器</p>
@@ -69,7 +72,7 @@ public class DynamicDataSourceCreator {
 
             check(compositeConfigBean);
 
-            mainDataSource = lookupMainDataSource();
+            mainDataSource = lookupDefaultDataSource();
             mappingDataSources = lookupMappingDataSources();
         }
     }
@@ -87,41 +90,55 @@ public class DynamicDataSourceCreator {
 
     }
 
-    private DataSource lookupMainDataSource() {
-        final DataSourceConfigBean config = loadConfigs(true)
+    private DataSource lookupDefaultDataSource() {
+
+        DataSource defaultDataSource = null;
+
+        final Optional<DataSourceConfigBean> configOptional = loadConfigs(true)
                 .values()
                 .stream()
-                .findFirst()
-                .orElse(Lists.newArrayList())
-                .get(0);
-        return createRawDataSource(config.getUrl(),
-                config.getUsername(),
-                config.getPassword(),
-                config.getDriverClassName());
+                .findFirst();
+
+        if (configOptional.isPresent()) {
+            final DataSourceConfigBean config = configOptional.get();
+            defaultDataSource = createRawDataSource(config.getUrl(),
+                    config.getUsername(),
+                    config.getPassword(),
+                    config.getDriverClassName());
+        }
+
+        return defaultDataSource;
     }
 
-    private Map<DataSourceLookupKey, List<DataSourceConfigBean>> loadConfigs(boolean isMain) {
+    private Map<Object, Object> lookupMappingDataSources() {
+        // TODO 根据策略去查找数据源映射表
+        final Map<IDataSourceLookupKey, DataSourceConfigBean> configs = loadConfigs(false);
+        Set<Map.Entry<IDataSourceLookupKey, DataSourceConfigBean>> entrys = configs.entrySet();
+        entrys.forEach(e -> {
 
-        Map<DataSourceLookupKey, List<DataSourceConfigBean>> configs = Maps.newHashMap();
+        });
+        return null;
+    }
+
+    private Map<IDataSourceLookupKey, DataSourceConfigBean> loadConfigs(boolean isDefault) {
+
+        Map<IDataSourceLookupKey, DataSourceConfigBean> configs = Maps.newHashMap();
 
         if (lookupStrategy == LOCAL_CONFIG_READ) {
-            if (isMain) {
-                configs.put(null, Lists.newArrayList(compositeConfigBean.getMain()));
+            if (isDefault) {
+                configs.put(null, compositeConfigBean.getMain());
             } else {
                 Map<String, List<DataSourceConfigBean>> mappings = compositeConfigBean.getMapping();
                 Set<Map.Entry<String, List<DataSourceConfigBean>>> entrys = mappings.entrySet();
-                entrys.forEach(e -> configs.put(e::getKey, e.getValue()));
+                entrys.forEach(e -> Optional.ofNullable(e.getValue())
+                        .orElse(Lists.newArrayList())
+                        .forEach(v -> configs.put(new DataSourceTypeLookupKey(e.getKey(), v.getType()), v)));
             }
         } else if (lookupStrategy == REMOTE_PULL) {
             // TODO SPI load
         }
 
         return configs;
-    }
-
-    private Map<Object, Object> lookupMappingDataSources() {
-        // TODO 根据策略去查找数据源映射表
-        return null;
     }
 
     private void resolveLookupStrategy() {
@@ -153,14 +170,6 @@ public class DynamicDataSourceCreator {
         if (StringUtils.isBlank(beanName)) {
             beanName = lowercaseFirstChar(DynamicRoutingDataSource.class.getSimpleName());
         }
-    }
-
-    private String lowercaseFirstChar(String text) {
-
-        String firstChar = text.substring(0, 1);
-        String otherChars = text.substring(1);
-
-        return firstChar.toLowerCase() + otherChars;
     }
 
     private void check(DataSourceCompositeConfigBean compositeConfigBean) {

@@ -1,16 +1,17 @@
 package cn.lauevan.easy.dds.core;
 
+import cn.lauevan.easy.dds.core.spi.IDataSourceLookupKey;
 import org.springframework.lang.NonNull;
 
 public class DataSourceLookupKeyHolder {
 
-    private static final ThreadLocal<DataSourceLookupKey> LOOKUP_KEY_HOLDER = new InheritableThreadLocal<>();
+    private static final ThreadLocal<IDataSourceLookupKey> LOOKUP_KEY_HOLDER = new InheritableThreadLocal<>();
 
-    public static void changeTo(@NonNull DataSourceLookupKey lookupKey) {
+    public static void changeTo(@NonNull IDataSourceLookupKey lookupKey) {
         LOOKUP_KEY_HOLDER.set(lookupKey);
     }
 
-    public static DataSourceLookupKey current() {
+    public static IDataSourceLookupKey current() {
         return LOOKUP_KEY_HOLDER.get();
     }
 

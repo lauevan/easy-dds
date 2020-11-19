@@ -1,9 +1,7 @@
 package cn.lauevan.easy.dds.spring.boot.starter;
 
 import cn.lauevan.easy.dds.spring.boot.starter.bean.DynamicDataSourceConfigBean;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,14 +16,9 @@ import javax.sql.DataSource;
  * Create at November 3, 2020 at 21:56:14 GMT+8
  */
 @Configuration
-@AutoConfigureBefore({DataSourceAutoConfiguration.class})
 @EnableConfigurationProperties(DynamicDataSourceConfigBean.class)
 @ConditionalOnProperty(prefix = "easy-dds", name = "enabled", havingValue = "true")
 public class DynamicDataSourceAutoConfiguration {
-
-    public DynamicDataSourceAutoConfiguration() {
-        System.out.println("testtttttt");
-    }
 
     @Bean
     public DynamicDataSourceCreator dynamicDataSourceCreator(DynamicDataSourceConfigBean dynamicDataSourceConfig) {
