@@ -91,7 +91,7 @@ public class DynamicDataSourceCreator {
 
     @EventListener(ContextClosedEvent.class)
     public void onClosed(ContextClosedEvent closedEvent) {
-
+        System.out.println("The application closed.");
     }
 
     private DataSource lookupDefaultDataSource() {

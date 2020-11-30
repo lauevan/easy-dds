@@ -21,13 +21,13 @@ import javax.sql.DataSource;
 public class DynamicDataSourceAutoConfiguration {
 
     @Bean
-    public DynamicDataSourceCreator dynamicDataSourceCreator(DynamicDataSourceConfigProps dynamicDataSourceConfig) {
+    public DynamicDataSourceCreator dynamicDataSourceCreator(DynamicDataSourceConfigProps dynamicDataSourceConfigProps) {
 
         final DynamicDataSourceCreator creator = new DynamicDataSourceCreator(
-                dynamicDataSourceConfig.getRoutingDataSourceBeanName(),
-                dynamicDataSourceConfig.getRoutingDataSourceType(),
-                dynamicDataSourceConfig.getDatasource().getLookupStrategy(),
-                dynamicDataSourceConfig.getDatasource());
+                dynamicDataSourceConfigProps.getRoutingDataSourceBeanName(),
+                dynamicDataSourceConfigProps.getRoutingDataSourceType(),
+                dynamicDataSourceConfigProps.getDatasource().getLookupStrategy(),
+                dynamicDataSourceConfigProps.getDatasource());
 
         creator.initialize();
 
