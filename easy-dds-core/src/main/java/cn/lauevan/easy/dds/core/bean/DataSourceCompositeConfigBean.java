@@ -4,7 +4,6 @@ import cn.lauevan.easy.dds.core.enums.DataSourceLookupStrategy;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -14,5 +13,5 @@ public class DataSourceCompositeConfigBean implements Serializable {
 
     private DataSourceLookupStrategy lookupStrategy;
     private DataSourceConfigBean main;
-    private Map<String, List<DataSourceConfigBean>> mapping;
+    private Map<String, DataSourceConfigBean> mapping;
 }

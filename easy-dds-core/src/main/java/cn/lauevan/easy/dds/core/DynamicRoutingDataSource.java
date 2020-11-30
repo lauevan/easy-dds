@@ -1,9 +1,11 @@
 package cn.lauevan.easy.dds.core;
 
+import cn.lauevan.easy.dds.core.lookup.IDataSourceLookupKey;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 import javax.sql.DataSource;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * <p>数据源路由实现类</p>
@@ -20,6 +22,13 @@ public class DynamicRoutingDataSource extends AbstractRoutingDataSource {
 
     @Override
     public Object determineCurrentLookupKey() {
-        return DataSourceLookupKeyHolder.current();
+
+        final IDataSourceLookupKey current = DataSourceLookupKeyHolder.current();
+
+        if (Objects.nonNull(current)) {
+            return current.create();
+        }
+
+        return null;
     }
 }

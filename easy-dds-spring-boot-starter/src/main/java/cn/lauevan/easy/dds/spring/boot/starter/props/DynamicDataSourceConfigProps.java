@@ -1,4 +1,4 @@
-package cn.lauevan.easy.dds.spring.boot.starter.bean;
+package cn.lauevan.easy.dds.spring.boot.starter.props;
 
 import cn.lauevan.easy.dds.core.bean.DataSourceCompositeConfigBean;
 import lombok.Data;
@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 @Data
 @ConfigurationProperties(prefix = "easy-dds")
-public class DynamicDataSourceConfigBean implements Serializable {
+public class DynamicDataSourceConfigProps implements Serializable {
 
     private static final long serialVersionUID = -9086377150590469193L;
 

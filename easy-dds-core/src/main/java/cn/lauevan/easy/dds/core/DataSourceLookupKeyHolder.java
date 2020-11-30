@@ -1,6 +1,6 @@
 package cn.lauevan.easy.dds.core;
 
-import cn.lauevan.easy.dds.core.spi.IDataSourceLookupKey;
+import cn.lauevan.easy.dds.core.lookup.IDataSourceLookupKey;
 import org.springframework.lang.NonNull;
 
 public class DataSourceLookupKeyHolder {

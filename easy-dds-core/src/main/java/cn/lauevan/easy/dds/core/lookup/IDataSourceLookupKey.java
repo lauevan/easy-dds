@@ -1,4 +1,4 @@
-package cn.lauevan.easy.dds.core.spi;
+package cn.lauevan.easy.dds.core.lookup;
 
 import cn.lauevan.easy.dds.core.IEquallyComparable;
 

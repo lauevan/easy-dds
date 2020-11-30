@@ -1,13 +1,10 @@
 package cn.lauevan.easy.dds.spring.boot.starter;
 
-import cn.lauevan.easy.dds.core.spi.IDataSourceLookupKey;
-import cn.lauevan.easy.dds.core.DataSourceTypeLookupKey;
 import cn.lauevan.easy.dds.core.DynamicRoutingDataSource;
 import cn.lauevan.easy.dds.core.bean.DataSourceCompositeConfigBean;
 import cn.lauevan.easy.dds.core.bean.DataSourceConfigBean;
 import cn.lauevan.easy.dds.core.enums.DataSourceLookupStrategy;
 import cn.lauevan.easy.dds.core.exception.DDSConfigurationErrorException;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +15,6 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.EventListener;
 
 import javax.sql.DataSource;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,6 +36,7 @@ public class DynamicDataSourceCreator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicDataSourceCreator.class);
 
     private static final Class<? extends DataSource> DEFAULT_DATA_SOURCE_TYPE = HikariDataSource.class;
+    private static final String DEFAULT_DRIVER_CLASS_NAME = "com.mysql.jdbc.Driver";
     private static final DataSourceLookupStrategy DEFAULT_LOOKUP_STRATEGY = REMOTE_PULL;
     private static final AtomicBoolean INITIALIZED = new AtomicBoolean(false);
 
@@ -56,9 +53,9 @@ public class DynamicDataSourceCreator {
 
 
     DynamicDataSourceCreator(String routingDataSrouceBeanName,
-                                    String routingDataSourceType,
-                                    DataSourceLookupStrategy lookupStrategy,
-                                    DataSourceCompositeConfigBean compositeConfigBean) {
+                             String routingDataSourceType,
+                             DataSourceLookupStrategy lookupStrategy,
+                             DataSourceCompositeConfigBean compositeConfigBean) {
         this.beanName = routingDataSrouceBeanName;
         this.dataSourceType = routingDataSourceType;
         this.compositeConfigBean = compositeConfigBean;
@@ -75,6 +72,13 @@ public class DynamicDataSourceCreator {
             mainDataSource = lookupDefaultDataSource();
             mappingDataSources = lookupMappingDataSources();
         }
+    }
+
+    private String resolveDriverClassName(String driverClassName) {
+        if (StringUtils.isBlank(driverClassName)) {
+            return DEFAULT_DRIVER_CLASS_NAME;
+        }
+        return driverClassName;
     }
 
     DataSource create() {
@@ -111,28 +115,28 @@ public class DynamicDataSourceCreator {
     }
 
     private Map<Object, Object> lookupMappingDataSources() {
-        // TODO 根据策略去查找数据源映射表
-        final Map<IDataSourceLookupKey, DataSourceConfigBean> configs = loadConfigs(false);
-        Set<Map.Entry<IDataSourceLookupKey, DataSourceConfigBean>> entrys = configs.entrySet();
+        Map<Object, Object> mappings = Maps.newHashMap();
+        final Map<String, DataSourceConfigBean> configs = loadConfigs(false);
+        Set<Map.Entry<String, DataSourceConfigBean>> entrys = configs.entrySet();
         entrys.forEach(e -> {
-
+            final DataSourceConfigBean config = e.getValue();
+            mappings.put(e.getKey(), createRawDataSource(config.getUrl(), config.getUsername(),
+                            config.getPassword(), config.getDriverClassName()));
         });
-        return null;
+        return mappings;
     }
 
-    private Map<IDataSourceLookupKey, DataSourceConfigBean> loadConfigs(boolean isDefault) {
+    private Map<String, DataSourceConfigBean> loadConfigs(boolean isDefault) {
 
-        Map<IDataSourceLookupKey, DataSourceConfigBean> configs = Maps.newHashMap();
+        Map<String, DataSourceConfigBean> configs = Maps.newHashMap();
 
         if (lookupStrategy == LOCAL_CONFIG_READ) {
             if (isDefault) {
                 configs.put(null, compositeConfigBean.getMain());
             } else {
-                Map<String, List<DataSourceConfigBean>> mappings = compositeConfigBean.getMapping();
-                Set<Map.Entry<String, List<DataSourceConfigBean>>> entrys = mappings.entrySet();
-                entrys.forEach(e -> Optional.ofNullable(e.getValue())
-                        .orElse(Lists.newArrayList())
-                        .forEach(v -> configs.put(new DataSourceTypeLookupKey(e.getKey(), v.getType()), v)));
+                Map<String, DataSourceConfigBean> mappings = compositeConfigBean.getMapping();
+                Set<Map.Entry<String, DataSourceConfigBean>> entrys = mappings.entrySet();
+                entrys.forEach(e -> configs.put(e.getKey(), e.getValue()));
             }
         } else if (lookupStrategy == REMOTE_PULL) {
             // TODO SPI load
@@ -192,10 +196,10 @@ public class DynamicDataSourceCreator {
         return DataSourceBuilder
                 .create()
                 .type(resolveDataSourceType(dataSourceType))
+                .driverClassName(resolveDriverClassName(driverClassName))
                 .url(url)
                 .username(username)
                 .password(password)
-                .driverClassName(driverClassName)
                 .build();
     }
 }
