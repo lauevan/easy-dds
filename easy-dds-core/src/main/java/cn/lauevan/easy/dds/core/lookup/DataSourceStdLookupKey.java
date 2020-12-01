@@ -1,4 +1,4 @@
-package cn.lauevan.easy.dds.core;
+package cn.lauevan.easy.dds.core.lookup;
 
 import cn.lauevan.easy.dds.core.enums.DataSourceType;
 import cn.lauevan.easy.dds.core.exception.DDSLookupKeyIncorrectException;

@@ -1,10 +1,8 @@
-package cn.lauevan.easy.dds.core.util;
+package cn.lauevan.easy.dds.core.lookup;
 
 import cn.lauevan.easy.dds.core.DataSourceLookupKeyHolder;
-import cn.lauevan.easy.dds.core.DataSourceStdLookupKey;
 import cn.lauevan.easy.dds.core.enums.DataSourceType;
 import cn.lauevan.easy.dds.core.exception.DDSLookupKeySwitchException;
-import cn.lauevan.easy.dds.core.lookup.IDataSourceLookupKey;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
