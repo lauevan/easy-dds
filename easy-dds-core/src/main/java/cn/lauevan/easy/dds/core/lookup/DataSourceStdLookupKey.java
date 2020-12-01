@@ -1,8 +1,7 @@
 package cn.lauevan.easy.dds.core.lookup;
 
 import cn.lauevan.easy.dds.core.enums.DataSourceType;
-import cn.lauevan.easy.dds.core.exception.DDSLookupKeyIncorrectException;
-import cn.lauevan.easy.dds.core.lookup.IDataSourceLookupKey;
+import cn.lauevan.easy.dds.core.exception.DDSLookupKeyCreateException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,7 +36,7 @@ public class DataSourceStdLookupKey implements IDataSourceLookupKey {
     public String create() {
 
         if (Objects.isNull(tenantId) || StringUtils.isBlank(appId)) {
-            throw new DDSLookupKeyIncorrectException("The lookup key that tenantId and appId are required");
+            throw new DDSLookupKeyCreateException("The lookup key that tenantId and appId are required");
         }
 
         String key;
